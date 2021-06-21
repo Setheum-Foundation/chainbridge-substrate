@@ -21,8 +21,6 @@ frame-system = { version = "3.0.0", default-features = false }
 
 pallet-balances = { version = "3.0.0", default-features = false }
 
-[build-dependencies]
-wasm-builder-runner = { version = "2.0.0", package = "substrate-wasm-builder-runner"}
 [features]
 default = ["std"]
 std = [
@@ -35,4 +33,8 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-balances/std",
+]
+runtime-benchmarks = [
+	"sp-runtime/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
 ]
