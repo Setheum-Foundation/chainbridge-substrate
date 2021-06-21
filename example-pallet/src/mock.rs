@@ -2,14 +2,14 @@
 
 use super::*;
 
-use frame_support::{ord_parameter_types, parameter_types, weights::Weight};
+use frame_support::{ord_parameter_types, parameter_types, weights::Weight, PalletId};
 use frame_system::{self as system};
 use sp_core::hashing::blake2_128;
 use sp_core::H256;
 use sp_runtime::{
     testing::Header,
     traits::{AccountIdConversion, BlakeTwo256, IdentityLookup},
-    ModuleId, Perbill,
+    Perbill,
 };
 
 use crate::{self as example, Config};
@@ -47,6 +47,7 @@ impl frame_system::Config for Test {
     type BlockWeights = ();
     type BlockLength = ();
     type SS58Prefix = ();
+    type OnSetCode = ();
 }
 
 parameter_types! {
@@ -109,11 +110,11 @@ frame_support::construct_runtime!(
         NodeBlock = Block,
         UncheckedExtrinsic = UncheckedExtrinsic
     {
-        System: system::{Module, Call, Event<T>},
-        Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
-        Bridge: bridge::{Module, Call, Storage, Event<T>},
-        Erc721: erc721::{Module, Call, Storage, Event<T>},
-        Example: example::{Module, Call, Event<T>}
+        System: system::{Pallet, Call, Event<T>},
+        Balances: balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Bridge: bridge::{Pallet, Call, Storage, Event<T>},
+        Erc721: erc721::{Pallet, Call, Storage, Event<T>},
+        Example: example::{Pallet, Call, Event<T>}
     }
 );
 
@@ -123,7 +124,7 @@ pub const RELAYER_C: u64 = 0x4;
 pub const ENDOWED_BALANCE: u64 = 100_000_000;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-    let bridge_id = ModuleId(*b"cb/bridg").into_account();
+    let bridge_id = PalletId(*b"cb/bridg").into_account();
     let mut t = frame_system::GenesisConfig::default()
         .build_storage::<Test>()
         .unwrap();
@@ -138,7 +139,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 }
 
 fn last_event() -> Event {
-    system::Module::<Test>::events()
+    system::Pallet::<Test>::events()
         .pop()
         .map(|e| e.event)
         .expect("Event expected")
@@ -150,7 +151,7 @@ pub fn expect_event<E: Into<Event>>(e: E) {
 
 // Asserts that the event was emitted at some point.
 pub fn event_exists<E: Into<Event>>(e: E) {
-    let actual: Vec<Event> = system::Module::<Test>::events()
+    let actual: Vec<Event> = system::Pallet::<Test>::events()
         .iter()
         .map(|e| e.event.clone())
         .collect();
@@ -168,7 +169,7 @@ pub fn event_exists<E: Into<Event>>(e: E) {
 // Checks events against the latest. A contiguous set of events must be provided. They must
 // include the most recent event, but do not have to include every past event.
 pub fn assert_events(mut expected: Vec<Event>) {
-    let mut actual: Vec<Event> = system::Module::<Test>::events()
+    let mut actual: Vec<Event> = system::Pallet::<Test>::events()
         .iter()
         .map(|e| e.event.clone())
         .collect();
